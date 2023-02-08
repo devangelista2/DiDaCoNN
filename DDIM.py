@@ -29,7 +29,7 @@ def DDIM(image_size, batch_size, depths, block_depth, max_signal_rate, min_signa
     
     def ResidualBlock(depth):
         def apply(x):
-            input_depth = x.shape[3]
+            input_depth = x.shape[-1]
             if input_depth == depth:
                 residual = x
             else:
@@ -70,7 +70,7 @@ def DDIM(image_size, batch_size, depths, block_depth, max_signal_rate, min_signa
 
 
     def get_denoising_network(image_size, depths, block_depth):
-        noisy_images = keras.Input(shape=(image_size, image_size, 3))
+        noisy_images = keras.Input(shape=(image_size, image_size, 1))
         noise_variances = keras.Input(shape=(1, 1, 1))
 
         e = layers.Lambda(sinusoidal_embedding)(noise_variances)
@@ -89,12 +89,12 @@ def DDIM(image_size, batch_size, depths, block_depth, max_signal_rate, min_signa
         for width in reversed(depths[:-1]): #errore width should be depth
             x = UpBlock(depth, block_depth)([x, skips])
 
-        x = layers.Conv2D(3, kernel_size=1, kernel_initializer="zeros")(x)
+        x = layers.Conv2D(1, kernel_size=1, kernel_initializer="zeros")(x)
 
         return keras.Model([noisy_images, noise_variances], x, name="denoising")
     
     def get_Unet(image_size, depths, block_depth):
-        input_images = keras.Input(shape=(image_size, image_size, 3))
+        input_images = keras.Input(shape=(image_size, image_size, 1))
 
         x = layers.Conv2D(depths[0], kernel_size=1)(input_images)
 
@@ -108,7 +108,7 @@ def DDIM(image_size, batch_size, depths, block_depth, max_signal_rate, min_signa
         for depth in reversed(depths[:-1]): 
             x = UpBlock(depth, block_depth)([x, skips])
 
-        x = layers.Conv2D(3, kernel_size=1, kernel_initializer="zeros")(x)
+        x = layers.Conv2D(1, kernel_size=1, kernel_initializer="zeros")(x)
 
         return keras.Model(input_images, x, name="unet")
 
@@ -198,7 +198,7 @@ def DDIM(image_size, batch_size, depths, block_depth, max_signal_rate, min_signa
 
         def generate(self, num_images, diffusion_steps):
             # noise -> images -> denormalized images
-            initial_noise = tf.random.normal(shape=(num_images, image_size, image_size, 3))
+            initial_noise = tf.random.normal(shape=(num_images, image_size, image_size, 1))
             generated_images = self.reverse_diffusion(initial_noise, diffusion_steps)
             generated_images = self.denormalize(generated_images)
             return generated_images
@@ -206,7 +206,7 @@ def DDIM(image_size, batch_size, depths, block_depth, max_signal_rate, min_signa
         def train_step(self, images):
             # normalize images to have standard deviation of 1, like the noises
             images = self.normalizer(images, training=True)
-            noises = tf.random.normal(shape=(batch_size, image_size, image_size, 3))
+            noises = tf.random.normal(shape=(batch_size, image_size, image_size, 1))
 
             # sample uniform random diffusion times
             diffusion_times = tf.random.uniform(
@@ -236,7 +236,7 @@ def DDIM(image_size, batch_size, depths, block_depth, max_signal_rate, min_signa
         def test_step(self, images):
             # normalize images to have standard deviation of 1, like the noises
             images = self.normalizer(images, training=False)
-            noises = tf.random.normal(shape=(batch_size, image_size, image_size, 3))
+            noises = tf.random.normal(shape=(batch_size, image_size, image_size, 1))
 
             # sample uniform random diffusion times
             diffusion_times = tf.random.uniform(

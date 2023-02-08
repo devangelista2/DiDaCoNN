@@ -32,7 +32,7 @@ depths = [48, 96, 192, 384]
 block_depth = 2
 
 ### Training parameters
-batch_size = 16
+batch_size = 128
 learning_rate = 0.0001
 weight_decay = 1e-4
 
@@ -54,6 +54,7 @@ model.normalizer.adapt(x_test)
 weights_filename = "diffusion_celeba_grayscale.hdf5"
 
 model.fit(
+    x_train,
     epochs=num_epochs,
     batch_size=batch_size
 )
