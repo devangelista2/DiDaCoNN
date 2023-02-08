@@ -1,2 +1,2 @@
-# DiDaCoNN
-DiDaCoNN (Diffusion Deblurring with Convolutional Neural Networks)
+# DiDeCoNN
+DiDeCoNN (Diffusion Deblurring with Convolutional Neural Networks)
