@@ -1,3 +1,4 @@
 IPPy/
 data/celeba_64/
 __pycache__/
+weights/
